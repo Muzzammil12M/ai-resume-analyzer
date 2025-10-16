@@ -1,3 +1,4 @@
+// export { default } from "./Upload";
 import React, { type FormEvent, useState } from "react";
 import Navbar from "~/components/Navbar";
 import FileUploader from "~/components/FileUploader";
@@ -6,11 +7,13 @@ import { convertPdfToImage } from "~/lib/pdf2img";
 import { useNavigate } from "react-router";
 import { formatSize } from "~/lib/format";
 import { generateUUID } from "~/lib/format";
+import { AIResponseFormat, prepareInstructions } from "~/constant";
 const Upload = () => {
   const { fs, auth, isLoading, ai, kv } = usePuterStore();
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusText, setStatusText] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const navigate = useNavigate();
   const handleFileSelect = (file: File | null) => {
     setFile(file);
   };
@@ -34,7 +37,10 @@ const Upload = () => {
     if (!imageFile.file)
       return setStatusText("Error: faiiled to convert PDF to image");
     setStatusText("uploading of File...");
-    const upLoadedImage = await fs.upload(imageFile.file);
+
+    const upLoadedImage = await fs.upload(
+      imageFile.file ? [imageFile.file] : []
+    );
     if (!upLoadedImage) return setStatusText("Error:Falied to Upload image");
     setStatusText("Preparing Data...");
     const uuid = generateUUID();
@@ -51,8 +57,17 @@ const Upload = () => {
     setStatusText("Analyzing....");
     const feedback = await ai.feedback(
       upLoadedFile.path,
-      prepareInstructions({ jobTitle, jobDescription })
+      prepareInstructions({ jobTitle, jobDescription, AIResponseFormat })
     );
+    if (!feedback) return setStatusText("Error: failed to ana;yz resume");
+    const feedBackText =
+      typeof feedback.message.content === "string"
+        ? feedback.message.content
+        : feedback.message.content[0].text;
+    data.feedback = JSON.parse(feedBackText);
+    await kv.set(`resume:${uuid}`, JSON.stringify(data));
+    setStatusText("Analysis complete,redirecting");
+    navigate(`/resume${uuid}`);
   };
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -127,4 +142,4 @@ const Upload = () => {
   );
 };
 
-export default Upload;
+// export default Upload;

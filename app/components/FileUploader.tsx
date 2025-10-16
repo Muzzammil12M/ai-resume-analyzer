@@ -34,7 +34,7 @@ const FileUploader: React.FC<fileUploaderProps> = ({ onFileSelect }) => {
           {file ? (
             <div
               className="uploader-selected-file"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
               <div className="text-center flex space-x-3">
                 <img src="/images/pdf.png" alt="pdf" className="w-10 h-10" />
@@ -49,7 +49,7 @@ const FileUploader: React.FC<fileUploaderProps> = ({ onFileSelect }) => {
               </div>
               <button
                 className="p-2 cursor-pointer"
-                onClick={(e) => {
+                onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   onFileSelect?.(null);
                 }}
