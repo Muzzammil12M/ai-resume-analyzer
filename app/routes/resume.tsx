@@ -31,6 +31,8 @@ const resume = () => {
       const resumeURL = URL.createObjectURL(pdfBlob);
       loadResume();
     };
+
+    loadResume();
   }, [id]);
   return (
     <main className="!pt-0">

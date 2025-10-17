@@ -67,16 +67,17 @@ const Upload = () => {
     data.feedback = JSON.parse(feedBackText);
     await kv.set(`resume:${uuid}`, JSON.stringify(data));
     setStatusText("Analysis complete,redirecting");
-    navigate(`/resume${uuid}`);
+    navigate(`/resume/${uuid}`);
   };
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget.closest("form");
     if (!form) return;
     const formData = new FormData(form);
-    const companyName = formData.get("company-name") as string;
-    const jobTitle = formData.get("job-title") as string;
-    const jobDescription = formData.get("job-description") as string;
+    const companyName = (formData.get("company-name") as string) || "";
+    const jobTitle = (formData.get("job-title") as string) || "";
+    const jobDescription = (formData.get("job-description") as string) || "";
     setStatusText("Starting upload...");
     if (!file) return;
     handleAnalyze({ companyName, jobTitle, jobDescription, file });
@@ -109,19 +110,19 @@ const Upload = () => {
                 />
               </div>
               <div className="form-div">
-                <label htmlFor="company-name">Job title</label>
+                <label htmlFor="job-title">Job title</label>
                 <input
                   type="text"
                   id="job-title"
-                  name="job-tile"
+                  name="job-title"
                   placeholder="Job title"
                 />
               </div>
               <div className="form-div">
-                <label htmlFor="company-name">Job Description</label>
+                <label htmlFor="job-description">Job Description</label>
                 <textarea
                   rows={5}
-                  id="job-Description"
+                  id="job-description"
                   name="job-description"
                   placeholder="Job description"
                 />

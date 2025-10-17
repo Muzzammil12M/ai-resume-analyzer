@@ -1,9 +1,9 @@
 import type { Route } from "./+types/home";
 import Navbar from "~/components/Navbar";
-import { resumes } from "~/constant";
+
 import ResumeCard from "~/components/ResumeCard";
-import { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import { usePuterStore } from "~/lib/puter";
 export function meta({}: Route.MetaArgs) {
   return [
@@ -13,15 +13,36 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-  const { auth } = usePuterStore();
+  const { auth, fs, kv } = usePuterStore();
+  const navigate = useNavigate();
+  const [resumeURL, setResumeURL] = useState("");
+  const [resumes, setResumes] = useState<Resume[]>([]);
+  const [loadingResume, setLoadingResume] = useState(false);
   // const location = useLocation();
   // const next = location.search.split("next=")[1] || "/";
-  const navigate = useNavigate();
+  useEffect(() => {
+    const loadResumes = async () => {
+      setLoadingResume(true);
+      const items = (await kv.list("resume:*", true)) as KVItem[];
+      const parsed = items.map((item) => {
+        try {
+          return JSON.parse(item.value) as Resume;
+        } catch {
+          return null;
+        }
+      }).filter(Boolean) as Resume[];
+      setResumes(parsed || []);
+      setLoadingResume(false);
+    };
+    loadResumes();
+  }, []);
   useEffect(() => {
     if (!auth.isAuthenticated) {
       navigate("/auth?next=/");
     }
   }, [auth.isAuthenticated]);
+  // Optional: load a preview from the first resume if you want a hero image.
+  // Currently each card handles its own image loading.
   return (
     <main className="bg-[url('/images/bg-main.svg')] bg-cover">
       <Navbar />
@@ -31,10 +52,10 @@ export default function Home() {
           <h2>Review your submission and Check the AI powered feedback</h2>
         </div>
 
-        {resumes.length > 0 && (
+        {!loadingResume && resumes.length > 0 && (
           <div className="resumes-section">
-            {resumes.map((resume) => (
-              <ResumeCard key={resume.id} resume={resume} />
+            {resumes.map((resumeItem) => (
+              <ResumeCard key={resumeItem.id} resume={resumeItem} />
             ))}
           </div>
         )}
